@@ -39,7 +39,7 @@ class Chef::ResourceDefinitionList::MongoDB
     begin
       connection = nil
       rescue_connection_failure do
-        connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 5, :slave_ok => true)
+        connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 60, :slave_ok => true)
         connection.database_names # check connection
       end
     rescue => e
