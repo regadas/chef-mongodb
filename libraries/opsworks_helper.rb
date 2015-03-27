@@ -10,6 +10,8 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
 
   # return Chef Nodes for this replicaset / layer
   def self.replicaset_members(node)
+    Chef::Log.info('OpsWorks replicaset members')
+
     members = []
     # FIXME -> this is bad, we're assuming replicaset instances use a single layer
     replicaset_layer_slug_name = node['opsworks']['instance']['layers'].first
