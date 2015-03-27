@@ -23,16 +23,17 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
         member.default['fqdn'] = instance['private_dns_name']
         member.default['ipaddress'] = instance['private_ip']
         member.default['hostname'] = name
+        bag_conf = node['opsworks']['data_bags']['mongodb'][name]
         mongodb_attributes = {
           # here we could support a map of instances to custom replicaset options in the custom json
           'port' => node['mongodb']['config']['port'],
-          'replica_arbiter_only' => false,
-          'replica_build_indexes' => true,
-          'replica_hidden' => false,
-          'replica_slave_delay' => 0,
-          'replica_priority' => 1,
-          'replica_tags' => {}, # to_hash is called on this
-          'replica_votes' => 1
+          'replica_arbiter_only' => bag_conf['mongodb']['replica_arbiter_only'] || false,
+          'replica_build_indexes' => bag_conf['mongodb']['replica_build_indexes'] || true,
+          'replica_hidden' => bag_conf['mongodb']['replica_hidden'] || false,
+          'replica_slave_delay' => bag_conf['mongodb']['replica_slave_delay'] || 0,
+          'replica_priority' => bag_conf['mongodb']['replica_priority'] || 1,
+          'replica_tags' => bag_conf['mongodb']['replica_parbiter_only'] || {}, # to_hash is called on this
+          'replica_votes' => bag_conf['mongodb']['replica_votes'] || 1
         }
         member.default['mongodb'] = mongodb_attributes
         members << member
