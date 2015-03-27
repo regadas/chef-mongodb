@@ -39,7 +39,7 @@ class Chef::ResourceDefinitionList::MongoDB
     begin
       connection = nil
       rescue_connection_failure do
-        connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 60, :slave_ok => true)
+        connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 5, :slave_ok => true)
         connection.database_names # check connection
       end
     rescue => e
@@ -53,7 +53,7 @@ class Chef::ResourceDefinitionList::MongoDB
     rs_members = []
     rs_options = {}
     members.each_index do |n|
-      host = "#{members[n]['fqdn']}:#{members[n]['mongodb']['config']['port']}"
+      host = "#{members[n]['fqdn']}:#{members[n]['mongodb']['port']}"
       rs_options[host] = {}
       rs_options[host]['arbiterOnly'] = true if members[n]['mongodb']['replica_arbiter_only']
       rs_options[host]['buildIndexes'] = false unless members[n]['mongodb']['replica_build_indexes']
@@ -79,7 +79,7 @@ class Chef::ResourceDefinitionList::MongoDB
 
     rs_member_ips = []
     members.each_index do |n|
-      port = members[n]['mongodb']['config']['port']
+      port = members[n]['mongodb']['port']
       rs_member_ips << { '_id' => n, 'host' => "#{members[n]['ipaddress']}:#{port}" }
     end
 
