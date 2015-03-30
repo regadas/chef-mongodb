@@ -48,7 +48,10 @@ define :mongodb_instance,
     provider = 'mongod'
   end
 
-  node.default['mongodb']['config']['configsvr'] = true if node['mongodb']['is_configserver']
+  if node['mongodb']['is_configserver']
+    node.default['mongodb']['config']['configsvr'] = true 
+    node.normal['mongodb']['config']['replSet'] = nil
+  end
 
   require 'ostruct'
 
