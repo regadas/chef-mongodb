@@ -8,35 +8,13 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
     node['opsworks'] != nil
   end
 
-  def self.instance(node)
-    node['opsworks']['instance']
-  end
-
-  def self.hostname(node)
-    self.instance(node)['hostname']
-  end
-
-  def self.stack_layer(node)
-    self.instance(node)['layers'].first
-  end
-
-  def self.instance_data_bag(node, name)
-    layer = self.stack_layer(node)
-    node['opsworks'].fetch('data_bags', {}).fetch(layer, {}).fetch(name, {})
-  end
-
-  def self.data_bag(node)
-    name = self.hostname(node)
-    self.instance_data_bag(node, name)
-  end
-
   # return Chef Nodes for this replicaset / layer
   def self.replicaset_members(node)
     Chef::Log.info('OpsWorks replicaset members')
 
     members = []
     # FIXME -> this is bad, we're assuming replicaset instances use a single layer
-    replicaset_layer_slug_name = self.stack_layer(node)
+    replicaset_layer_slug_name = node['opsworks']['instance']['layers'].first
     instances = node['opsworks']['layers'][replicaset_layer_slug_name]['instances']
     instances.each do |name, instance|
       if instance['status'] == 'online'
@@ -45,7 +23,7 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
         member.default['fqdn'] = instance['private_dns_name']
         member.default['ipaddress'] = instance['private_ip']
         member.default['hostname'] = name
-        bag_conf = node['opsworks']['data_bags']['mongodb'][name]
+        bag_conf = node['opsworks']['data_bags'][replicaset_layer_slug_name][name]
         mongodb_attributes = {
           # here we could support a map of instances to custom replicaset options in the custom json
           'port' => node['mongodb']['config']['port'],
@@ -54,7 +32,7 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
           'replica_hidden' => bag_conf['mongodb']['replica_hidden'] || false,
           'replica_slave_delay' => bag_conf['mongodb']['replica_slave_delay'] || 0,
           'replica_priority' => bag_conf['mongodb']['replica_priority'] || 1,
-          'replica_tags' => bag_conf['mongodb']['replica_parbiter_only'] || {}, # to_hash is called on this
+          'replica_tags' => bag_conf['mongodb']['replica_tags'] || {}, # to_hash is called on this
           'replica_votes' => bag_conf['mongodb']['replica_votes'] || 1
         }
         member.default['mongodb'] = mongodb_attributes

@@ -1,6 +1,18 @@
 # install the 10gen repo if necessary
 include_recipe 'mongodb::10gen_repo' if %w(10gen mongodb-org).include?(node['mongodb']['install_method'])
 
+execute "change-dbpath-permission" do
+  command "chown -R mongod:mongod #{node['mongodb']['config']['dbpath']}"
+  user "root"
+  action :nothing
+end
+
+execute "change-logpath-permission" do
+  command "chown -R mongod:mongod #{node['mongodb']['config']['logpath']}"
+  user "root"
+  action :nothing
+end
+
 # prevent-install defaults, but don't overwrite
 file node['mongodb']['sysconfig_file'] do
   content 'ENABLE_MONGODB=no'
