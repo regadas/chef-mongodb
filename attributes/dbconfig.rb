@@ -33,3 +33,12 @@ default['mongodb']['config']['oplogSize'] = nil
 
 default['mongodb']['config']['replSet'] = nil
 default['mongodb']['config']['keyFile'] = '/etc/mongodb.key' if node['mongodb']['key_file_content']
+
+if node['opsworks'] != nil
+  hostname = node['opsworks']['instance']['hostname']
+  layer = node['opsworks']['instance']['layers'].first
+  config = node['opsworks']['data_bags'][layer][hostname]['mongodb']['config']
+  config.each do |key, value|
+    normal['mongodb']['config'][key] = value
+  end
+end

@@ -100,6 +100,7 @@ define :mongodb_instance,
     mode = '0755'
   end
 
+
   # TODO(jh): reimplement using polymorphism
   if new_resource.is_replicaset
     if new_resource.replicaset_name

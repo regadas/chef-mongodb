@@ -8,13 +8,35 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
     node['opsworks'] != nil
   end
 
+  def self.instance(node)
+    node['opsworks']['instance']
+  end
+
+  def self.hostname(node)
+    self.instance(node)['hostname']
+  end
+
+  def self.stack_layer(node)
+    self.instance(node)['layers'].first
+  end
+
+  def self.instance_data_bag(node, name)
+    layer = self.stack_layer(node)
+    node['opsworks'].fetch('data_bags', {}).fetch(layer, {}).fetch(name, {})
+  end
+
+  def self.data_bag(node)
+    name = self.hostname(node)
+    self.instance_data_bag(node, name)
+  end
+
   # return Chef Nodes for this replicaset / layer
   def self.replicaset_members(node)
     Chef::Log.info('OpsWorks replicaset members')
 
     members = []
     # FIXME -> this is bad, we're assuming replicaset instances use a single layer
-    replicaset_layer_slug_name = node['opsworks']['instance']['layers'].first
+    replicaset_layer_slug_name = self.stack_layer(node)
     instances = node['opsworks']['layers'][replicaset_layer_slug_name]['instances']
     instances.each do |name, instance|
       if instance['status'] == 'online'
