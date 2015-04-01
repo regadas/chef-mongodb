@@ -16,14 +16,16 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
     # FIXME -> this is bad, we're assuming replicaset instances use a single layer
     replicaset_layer_slug_name = node['opsworks']['instance']['layers'].first
     instances = node['opsworks']['layers'][replicaset_layer_slug_name]['instances']
+    node_conf = Chef::DataBagItem.load('mongodb', node['opsworks']['instance']['hostname'])
     instances.each do |name, instance|
-      if instance['status'] == 'online'
+      bag_conf = Chef::DataBagItem.load('mongodb', name)
+      if instance['status'] == 'online' and \
+          node_conf['mongodb']['config']['replSet'] == bag_conf['mongodb']['config']['replSet']
         member = Chef::Node.new
         member.name(name)
         member.default['fqdn'] = instance['private_dns_name']
         member.default['ipaddress'] = instance['private_ip']
         member.default['hostname'] = name
-        bag_conf = node['opsworks']['data_bags'][replicaset_layer_slug_name][name]
         mongodb_attributes = {
           # here we could support a map of instances to custom replicaset options in the custom json
           'port' => node['mongodb']['config']['port'],
