@@ -47,4 +47,34 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
     members
   end
 
+  def self.configserv_members(node)
+    Chef::Log.info('OpsWorks configserv members')
+
+    members = []
+    replicaset_layer_slug_name = node['opsworks']['instance']['layers'].first
+    instances = node['opsworks']['layers'][replicaset_layer_slug_name]['instances']
+    node_conf = Chef::DataBagItem.load(
+      replicaset_layer_slug_name,
+      node['opsworks']['instance']['hostname']
+    )
+    instances.each do |name, instance|
+      bag_conf = Chef::DataBagItem.load(replicaset_layer_slug_name, name)
+      if instance['status'] == 'online' and \
+          node_conf['mongodb']['config']['replSet'] == bag_conf['mongodb']['config']['replSet']
+        member = Chef::Node.new
+        member.name(name)
+        member.default['fqdn'] = instance['private_dns_name']
+        member.default['ipaddress'] = instance['private_ip']
+        member.default['hostname'] = name
+        member.default['mongodb'] = {}
+
+        bag_conf.each do |k, v|
+          member.default['mongodb'][k] = v
+        end
+        members << member
+      end
+    end
+    members
+  end
+
 end

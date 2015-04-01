@@ -30,12 +30,16 @@ service node[:mongodb][:default_init_name] do
   action [:disable, :stop]
 end
 
-configsrvs = search(
-  :node,
-  "mongodb_cluster_name:#{node['mongodb']['cluster_name']} AND \
-   mongodb_is_configserver:true AND \
-   chef_environment:#{node.chef_environment}"
-)
+if OpsWorksHelper.opsworks?(node)
+  configsrvs = OpsWorksHelper.configserv_members(node)
+else
+  configsrvs = search(
+    :node,
+    "mongodb_cluster_name:#{node['mongodb']['cluster_name']} AND \
+     mongodb_is_configserver:true AND \
+     chef_environment:#{node.chef_environment}"
+  )
+end
 
 if configsrvs.length != 1 && configsrvs.length != 3
   Chef::Log.error("Found #{configsrvs.length} configservers, need either one or three of them")
