@@ -16,9 +16,12 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
     # FIXME -> this is bad, we're assuming replicaset instances use a single layer
     replicaset_layer_slug_name = node['opsworks']['instance']['layers'].first
     instances = node['opsworks']['layers'][replicaset_layer_slug_name]['instances']
-    node_conf = Chef::DataBagItem.load('mongodb', node['opsworks']['instance']['hostname'])
+    node_conf = Chef::DataBagItem.load(
+      replicaset_layer_slug_name,
+      node['opsworks']['instance']['hostname']
+    )
     instances.each do |name, instance|
-      bag_conf = Chef::DataBagItem.load('mongodb', name)
+      bag_conf = Chef::DataBagItem.load(replicaset_layer_slug_name, name)
       if instance['status'] == 'online' and \
           node_conf['mongodb']['config']['replSet'] == bag_conf['mongodb']['config']['replSet']
         member = Chef::Node.new
