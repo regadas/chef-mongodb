@@ -51,16 +51,13 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
     Chef::Log.info('OpsWorks configserv members')
 
     members = []
-    replicaset_layer_slug_name = node['opsworks']['instance']['layers'].first
-    instances = node['opsworks']['layers'][replicaset_layer_slug_name]['instances']
-    node_conf = Chef::DataBagItem.load(
-      replicaset_layer_slug_name,
-      node['opsworks']['instance']['hostname']
-    )
+    #FIXME: we should find another way to find the instances
+    configserv_layer = node['mongodb']['configserver_layer'] || node['opsworks']['instance']['layers'].first
+    instances = node['opsworks']['layers'][configserv_layer]['instances']
+
     instances.each do |name, instance|
-      bag_conf = Chef::DataBagItem.load(replicaset_layer_slug_name, name)
-      if instance['status'] == 'online' and \
-          node_conf['mongodb']['config']['replSet'] == bag_conf['mongodb']['config']['replSet']
+      bag_conf = Chef::DataBagItem.load(configserv_layer, name)
+      if instance['status'] == 'online'
         member = Chef::Node.new
         member.name(name)
         member.default['fqdn'] = instance['private_dns_name']
@@ -68,7 +65,7 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
         member.default['hostname'] = name
         member.default['mongodb'] = {}
 
-        bag_conf.each do |k, v|
+        bag_conf['mongodb'].each do |k, v|
           member.default['mongodb'][k] = v
         end
         members << member

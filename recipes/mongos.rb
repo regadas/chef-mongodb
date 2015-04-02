@@ -30,8 +30,8 @@ service node[:mongodb][:default_init_name] do
   action [:disable, :stop]
 end
 
-if OpsWorksHelper.opsworks?(node)
-  configsrvs = OpsWorksHelper.configserv_members(node)
+if Chef::ResourceDefinitionList::OpsWorksHelper.opsworks?(node)
+  configsrvs = Chef::ResourceDefinitionList::OpsWorksHelper.configserv_members(node)
 else
   configsrvs = search(
     :node,
