@@ -26,7 +26,7 @@ class Chef::ResourceDefinitionList::OpsWorksHelper
           node_conf['mongodb']['config']['replSet'] == bag_conf['mongodb']['config']['replSet']
         member = Chef::Node.new
         member.name(name)
-        member.default['fqdn'] = instance['private_dns_name']
+        member.default['fqdn'] = bag_conf['mongodb']['fqdn'] || instance['private_dns_name']
         member.default['ipaddress'] = instance['private_ip']
         member.default['hostname'] = name
         mongodb_attributes = {
